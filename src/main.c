@@ -94,8 +94,8 @@ int main(void){
 	
 	puts("IR-send 1ms on 1s off");
 	
-	uint32_t SLEEPTIME_CLEAR_MS = 1;
-	uint32_t SLEEPTIME_SET_MS = 1000;
+	uint32_t SLEEPTIME_CLEAR_US = 1;
+	uint32_t SLEEPTIME_SET_US = 1000000;
     
 	gpio_init(pin, GPIO_OUT_PU);	
     gpio_set(pin); 							// Pin auf High
@@ -103,9 +103,9 @@ int main(void){
 	while(1){
 		LED0_TOGGLE
 		gpio_clear(pin);					// IR an 
-		xtimer_usleep(SLEEPTIME_CLEAR_MS);
+		xtimer_usleep(SLEEPTIME_CLEAR_US);
 		gpio_set(pin);						// IR aus
-		xtimer_usleep(SLEEPTIME_SET_MS);	
+		xtimer_usleep(SLEEPTIME_SET_US);	
 	}
 	
     return 0;
