@@ -11,6 +11,7 @@
 *.synctex.gz
 *.toc
 *.xdv
+*.bak
 
 # ignore riot build dir
 src/bin
