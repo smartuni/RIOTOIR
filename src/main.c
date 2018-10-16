@@ -95,13 +95,13 @@ int main(void){
 	
 	puts("IR-send 1ms on 1s off");
 	
-	uint32_t SLEEPTIME_CLEAR_US = 5000;
-	uint32_t SLEEPTIME_SET_US = 1000000;
+	uint32_t SLEEPTIME_CLEAR_US = 3700; //min 3700us zur erkennung (test samr21-xpro)
+	uint32_t SLEEPTIME_SET_US = 5000;
     
 	gpio_init(pin, GPIO_OUT);	
     gpio_set(pin); 							// Pin auf High
 	
-	while(1){
+	for(int i = 0; i < 1000; i++){
 		LED0_TOGGLE;
 		gpio_clear(pin);					// IR an 
 		xtimer_usleep(SLEEPTIME_CLEAR_US);
