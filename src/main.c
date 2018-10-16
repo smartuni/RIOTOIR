@@ -1,7 +1,7 @@
 
 #include "shell.h"
 #include "thread.h"
-#include "gpio.h"
+#include "periph/gpio.h"
 #include "xtimer.h"
 
 #include <stdio.h>
@@ -17,10 +17,11 @@ uint32_t BIT_TIME_NS = 1157; 	 		//Transmittime for 1 Bit
 uint32_t PULSE_PAUSE_TIME_NS = 470;     //Pause, before and behind PULSE_WIDTH_TIME
 
 uint8_t HEADER_LEN = 6 * sizeof(uint8_t);
-uint8_t MAX_MSG_LENGTH = 0xff - ( HEADER_LEN );
+//uint8_t MAX_MSG_LENGTH = 0xff - ( HEADER_LEN );
 uint8_t PRAEAMBLE = 1 + 4 + 16 + 64; // 10101010
 uint8_t VERSION = 0;
 
+/*
 struct message{
 	uint8_t praeamble;
 	uint8_t version;
@@ -87,21 +88,21 @@ int sendByte(uint8_t byte){
 	}
 	sendBit(1);									// send StopBit
 	return EXIT_SUCCESS;
-}
+}*/
 
 
 int main(void){
 	
 	puts("IR-send 1ms on 1s off");
 	
-	uint32_t SLEEPTIME_CLEAR_US = 1;
+	uint32_t SLEEPTIME_CLEAR_US = 5000;
 	uint32_t SLEEPTIME_SET_US = 1000000;
     
-	gpio_init(pin, GPIO_OUT_PU);	
+	gpio_init(pin, GPIO_OUT);	
     gpio_set(pin); 							// Pin auf High
 	
 	while(1){
-		LED0_TOGGLE
+		LED0_TOGGLE;
 		gpio_clear(pin);					// IR an 
 		xtimer_usleep(SLEEPTIME_CLEAR_US);
 		gpio_set(pin);						// IR aus
