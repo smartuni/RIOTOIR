@@ -21,7 +21,11 @@ QUIET ?= 1
 # Modules to include:
 
 USEMODULE += shell
-
+USEMODULE += shell_commands
+USEMODULE += ps
+USEMODULE += xtimer
+USEMODULE += periph_gpio_irq
+USEMODULE += printf_float
 #export INCLUDES += -Iapplication_include
 
 include $(RIOTBASE)/Makefile.include
