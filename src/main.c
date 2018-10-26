@@ -95,8 +95,8 @@ int main(void){
 	
 	puts("IR-send 1ms on 1s off");
 	
-	uint32_t SLEEPTIME_CLEAR_US = 3700; //min 3700us zur erkennung (test samr21-xpro)
-	uint32_t SLEEPTIME_SET_US = 5000;
+	uint32_t SLEEPTIME_CLEAR_US = 500; //min 500us entferung 15cm zur erkennung (test samr21-xpro) 
+	uint32_t SLEEPTIME_SET_US = 500; //min 500us entferung 15cm zur erkennung (test samr21-xpro)
     
 	gpio_init(pin, GPIO_OUT);	
     gpio_set(pin); 							// Pin auf High
