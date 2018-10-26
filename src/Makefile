@@ -21,6 +21,10 @@ QUIET ?= 1
 # Modules to include:
 
 USEMODULE += shell
+USEMODULE += shell_commands
+USEMODULE += ps
+USEMODULE += xtimer
+USEMODULE += periph_gpio_irq
 
 #export INCLUDES += -Iapplication_include
 
