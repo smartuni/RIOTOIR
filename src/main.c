@@ -10,6 +10,8 @@
 
 static unsigned int isr_counter = 0;
 
+static char stack[THREAD_STACKSIZE_MAIN];
+
 gpio_t transistor_pin = GPIO_PIN(PA, 13);
 
 void *thread_handler(void *arg)
@@ -19,7 +21,7 @@ void *thread_handler(void *arg)
     while(true) {
         xtimer_sleep(1);
 
-        printf("%ld: %d\n", xtimer_now().ticks32, isr_counter);
+        printf("%ld: %d\n", xtimer_now_usec(), isr_counter);
         printf("%d\n", gpio_read(transistor_pin));
         LED0_TOGGLE;
     }
@@ -28,7 +30,6 @@ void *thread_handler(void *arg)
 
 void isr(void *arg) {
     (void)arg;
-    const uint32_t timestamp = xtimer_now().ticks32;
 
     ++isr_counter;
 }
