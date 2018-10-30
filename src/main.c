@@ -14,7 +14,7 @@
 #define SIGNAL_DURATION_US 500
 #define BIT_DURATION_US 2 * SIGNAL_DURATION_US
 #define BIT_DURATION_TOLLERANCE ((int) (SIGNAL_DURATION_US * 0.05))
-#define BITS_PER_FRAME 10
+#define BITS_PER_FRAME ((uint8_t) 10)
 
 #define DECODER_MSG_QUEUE_SIZE 128
 #define PRINTER_MSG_QUEUE_SIZE 16
@@ -41,13 +41,14 @@ void *thread_handler(void *arg) {
 
 
     while(true) {
-        msg_t msg;
+        xtimer_sleep(1);
+        /*msg_t msg;
         msg_receive(&msg);
 
-        printf("char received: %x (%c) ", (char) msg.content.value, (char) msg.content.value);
+        printf("char received: %x (%c)\n", (char) msg.content.value, (char) msg.content.value);*/
 
-        printf("%ld: %d\n", xtimer_now_usec(), isr_counter);
-        printf("%d\n", gpio_read(transistor_pin));
+        printf("%ld: %d recv_error_cnt: %d\n", xtimer_now_usec(), isr_counter, recv_error_cnt);
+        //printf("%d\n", gpio_read(transistor_pin));
     }
     return NULL;
 }
@@ -55,59 +56,68 @@ void *thread_handler(void *arg) {
 void *thread_decoder(void *arg) {
     (void)arg;
 
-    static bool start_byte_recieved = false;
-    static uint32_t last_pulse = 0;
+    bool start_bit_recieved = false;
+    uint32_t last_pulse = 0;
     uint8_t received_bits = 0;
     uint8_t recv_buffer = 0;
 
     msg_init_queue(decoder_msg_queue, DECODER_MSG_QUEUE_SIZE);
 
     while(true) {
-        xtimer_usleep(BIT_DURATION_US + BIT_DURATION_TOLLERANCE);
+        msg_t msg;
+        msg_receive(&msg);
 
-        // no pulse received and no frame started
-        if (!msg_avail() && !start_byte_recieved) {
-            continue;
+        uint32_t pulse_timestamp = msg.content.value;
 
-        // pulse indicates start of frame
-        } else if (msg_avail() && !start_byte_recieved) {
-            msg_t msg;
-            msg_receive(&msg);
+        printf("pulse: %ld\n", pulse_timestamp);
 
-            last_pulse = msg.content.value;
-            start_byte_recieved = true;
+        if (!start_bit_recieved) {
+            start_bit_recieved = true;
             ++received_bits;
-
-        // no pulse received and at the end of a frame
-        } else if (!msg_avail() && start_byte_recieved && received_bits >= 9) {
-            received_bits = 0;
-            start_byte_recieved = false;
-
-            msg_t msg;
-            msg.content.value = (uint32_t) recv_buffer;
-            msg_send(&msg, print_thread_pid);
-
-            recv_buffer = 0;
-
-        // no pulse received and in the middle of a frame
-        // indicating value 1 bit
-        } else if (!msg_avail() && start_byte_recieved) {
-            ++received_bits;
-            recv_buffer |= 0b1 << ( 7 - (received_bits  - 1));
-
-        // pulse received and in the middle of a frame
-        } else if (msg_avail() && start_byte_recieved) {
-            msg_t msg;
-            msg_receive(&msg);
-            // TODO do something with this timestamp
-            uint32_t pulse = msg.content.value;
-            ++received_bits;
-            last_pulse = pulse;
-
-        // Should never be reached!!!
         } else {
-            ++decode_error_cnt;
+            uint32_t diff = pulse_timestamp - last_pulse;
+            uint32_t approx_bit_count = round(diff / BIT_DURATION_US);
+            uint32_t max_uncertainty = approx_bit_count * BIT_DURATION_TOLLERANCE;
+
+            //check for timeout
+            if (approx_bit_count > (uint32_t) (BITS_PER_FRAME - received_bits)) {
+                received_bits = 0;
+                start_bit_recieved = false;
+                ++decode_error_cnt;
+                continue;
+            }
+
+            if (diff >= approx_bit_count * BIT_DURATION_US + max_uncertainty
+                    && diff <= approx_bit_count * BIT_DURATION_US + max_uncertainty
+                    && approx_bit_count > 1) {
+                for (size_t i = received_bits; i <= received_bits + approx_bit_count - 1; ++i) {
+                    uint8_t bit_index = 8 - (i - 1);
+                    if (i == BITS_PER_FRAME) {
+                        continue;
+                    }
+
+                    recv_buffer |= 0x1 << bit_index;
+                }
+
+            } else {
+                received_bits = 0;
+                start_bit_recieved = false;
+                ++decode_error_cnt;
+                continue;
+            }
+
+            received_bits += approx_bit_count;
+            if (received_bits == BITS_PER_FRAME) {
+                msg_t send_msg;
+                send_msg.content.value = received_bits;
+
+                msg_send(&send_msg, print_thread_pid);
+                received_bits = 0;
+                start_bit_recieved = false;
+            }
         }
+
+        last_pulse = pulse_timestamp;
     }
 }
 
@@ -145,7 +155,7 @@ int main(void)
             NULL,
             "decoder");
 
-    gpio_init_int(transistor_pin, GPIO_IN, GPIO_RISING, isr, NULL);
+    gpio_init_int(transistor_pin, GPIO_IN_PD, GPIO_RISING, isr, NULL);
 
     char line_buf[SHELL_DEFAULT_BUFSIZE];
     shell_run(NULL, line_buf, SHELL_DEFAULT_BUFSIZE);
