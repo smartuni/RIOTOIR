@@ -11,19 +11,19 @@
 
 #define BUFFERSIZE 32
 
-#define SIGNAL_DURATION_US 500
-#define BIT_DURATION_US 2 * SIGNAL_DURATION_US
+#define SIGNAL_DURATION_US 575
+#define BIT_DURATION_US (2 * SIGNAL_DURATION_US)
 #define BIT_DURATION_TOLLERANCE ((int) (SIGNAL_DURATION_US * 0.05))
 #define BITS_PER_FRAME ((uint8_t) 10)
+static const uint32_t TIMER_OFFSET = 80;
 
 #define DECODER_MSG_QUEUE_SIZE 128
-#define PRINTER_MSG_QUEUE_SIZE 16
+#define PRINTER_MSG_QUEUE_SIZE 2048
 
 static char stack[THREAD_STACKSIZE_MAIN];
 static char stack_decoder[THREAD_STACKSIZE_MAIN];
 static msg_t decoder_msg_queue[DECODER_MSG_QUEUE_SIZE];
 static msg_t printer_msg_queue[PRINTER_MSG_QUEUE_SIZE];
-
 
 static unsigned int isr_counter = 0;
 static unsigned int recv_error_cnt = 0;
@@ -42,12 +42,12 @@ void *thread_handler(void *arg) {
 
     while(true) {
         xtimer_sleep(1);
-        /*msg_t msg;
-        msg_receive(&msg);
+        msg_t msg;
+        //msg_receive(&msg);
 
-        printf("char received: %x (%c)\n", (char) msg.content.value, (char) msg.content.value);*/
+        //printf("char received: %x (%c)\n", (char) msg.content.value, (char) msg.content.value);
 
-        printf("%ld: %d recv_error_cnt: %d\n", xtimer_now_usec(), isr_counter, recv_error_cnt);
+        printf("%ld: %d recv_error_cnt: %d decode_error_cnt: %d\n", xtimer_now_usec(), isr_counter, recv_error_cnt, decode_error_cnt);
         //printf("%d\n", gpio_read(transistor_pin));
     }
     return NULL;
@@ -75,15 +75,25 @@ void *thread_decoder(void *arg) {
             start_bit_recieved = true;
             ++received_bits;
         } else {
-            uint32_t diff = pulse_timestamp - last_pulse;
+            uint32_t diff = pulse_timestamp - last_pulse - TIMER_OFFSET;
             uint32_t approx_bit_count = round(diff / BIT_DURATION_US);
             uint32_t max_uncertainty = approx_bit_count * BIT_DURATION_TOLLERANCE;
+
+            printf("timestamp: %ld\n", pulse_timestamp);
+            printf("last_pulse: %ld\n", last_pulse);
+            printf("TIMER_OFFSET: %ld\n", TIMER_OFFSET);
+            printf("diff: %ld\n", diff);
+            printf("diff: %ld\n", diff);
+            printf("approx_bit_count: %f, %ld\n", (double) diff/ BIT_DURATION_US, approx_bit_count);
+            printf("BITS_PER_FRAME: %d\n", BITS_PER_FRAME);
+            printf("received_bits: %d\n", received_bits);
+
 
             //check for timeout
             if (approx_bit_count > (uint32_t) (BITS_PER_FRAME - received_bits)) {
                 received_bits = 0;
                 start_bit_recieved = false;
-                ++decode_error_cnt;
+                decode_error_cnt |= 2;
                 continue;
             }
 
@@ -102,7 +112,7 @@ void *thread_decoder(void *arg) {
             } else {
                 received_bits = 0;
                 start_bit_recieved = false;
-                ++decode_error_cnt;
+                decode_error_cnt |= 1;
                 continue;
             }
 
@@ -139,6 +149,12 @@ int main(void)
 {
     puts("This is the RIOTOIR project\n");
     printf("This application runs on %s\n", RIOT_BOARD);
+
+    uint32_t test1 = 5058476;
+    uint32_t test2 = 5057360;
+    uint32_t test3 = 80;
+
+    printf("result: %d\n", test1 - test2 - test3);
 
     print_thread_pid = thread_create(
             stack, sizeof(stack),
