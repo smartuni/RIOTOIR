@@ -95,10 +95,10 @@ int main(void){
 
 
 	while(true){
-		uint8_t zahl;
+		char sign;
 		printf("(%s)\n", "Geben sie eine Zahl ein (0 - 255):");
-		scanf("%d", &zahl);
-		sendByte(zahl);
+		scanf("%c", &sign);
+		sendByte((uint8_t)sign);
 	}
 
 
