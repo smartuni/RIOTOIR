@@ -14,8 +14,9 @@
 
 gpio_t pin = GPIO_PIN(PA, 6);			//GPIO Pin declaration
 
+uint32_t PAUSE_TIME_US = 500;			//
 uint32_t PULSE_WIDTH_TIME_US = 500;		//IR-on time (when sending '0'-Bit)
-uint32_t BIT_TIME_US = 1000; 	 		//Transmittime for 1 Bit
+uint32_t START_END_PULSE_US = 1000; 	 		//Transmittime for 1 Bit
 uint32_t PULSE_PAUSE_TIME_US = 250;     //Pause, before and behind PULSE_WIDTH_TIME
 
 #define HEADER_LEN (6 * sizeof(uint8_t))
@@ -53,53 +54,32 @@ struct message messageCreate(uint8_t transmitter, uint8_t reciver, uint8_t * pay
 	return msg;
 }
 
-int sendBit(uint8_t bit){
-	int failure = 0;
-	if(bit == 1){
-		// Interrupt, wenn andere senden!
-		gpio_set(pin);								// IR off
-		xtimer_usleep(BIT_TIME_US);
-		// prüfen ob andere gesendet haben
-	} else if( (bit & 1)== 0) {
-		// Interrupt, wenn andere senden!
-		gpio_set(pin);								// IR off
-		xtimer_usleep(PULSE_PAUSE_TIME_US);
-		// prüfen ob andere gesendet haben
-		gpio_clear(pin);							// IR on
-		xtimer_usleep(PULSE_WIDTH_TIME_US);
-		gpio_set(pin);								// IR off
-		// Interrupt, wenn andere senden!
-		xtimer_usleep(PULSE_PAUSE_TIME_US);
-		// prüfen ob andere gesendet haben
-	} else {
-		error = 1;
-	}
-
-	if(failure == 0){
-		return EXIT_SUCCESS;
-	} else {
-		return EXIT_FAILURE;
-	}
+void sendPulse(uint32_t onTime_us){
+	gpio_set(pin);								// IR off
+	xtimer_usleep(PAUSE_TIME_US);
+	gpio_clear(pin);							// IR on
+	xtimer_usleep(onTime_us);
+	gpio_set(pin);								// IR off
 }
 
-
-int sendByte(uint8_t byte){
+void sendNibble(uint8_t nibble){
 	// send StartBit
-	if(sendBit(0) != EXIT_SUCCESS){
-		error = 3;
-		return EXIT_FAILURE;
-	}
+	sendPulse(START_END_PULSE_US);
 
-	for(int i = 7; i >= 0; --i ){
-		if(sendBit((byte >> i) & 0x1) != EXIT_SUCCESS){
-			error = 2;
-			return EXIT_FAILURE;
-		}
+	// set MSB-Nibble to zero
+	nibble = nibble & 0xf; 
+
+	for(int i = 0; i < nibble; i++){
+		sendPulse(PULSE_WIDTH_TIME_US);
 	}
 
 	// send StopBit
-	sendBit(0);
-	return EXIT_SUCCESS;
+	sendPulse(START_END_PULSE_US);	
+}
+
+void sendByte(uint8_t byte){
+	sendNibble(byte >> 4);
+	sendNibble(byte);
 }
 
 
@@ -110,13 +90,14 @@ int main(void){
 	gpio_init(pin, GPIO_OUT);
     gpio_set(pin); 							// IR aus
 
-	//sendByte(7);
+	sendByte(127);
 	printf("error: %d\n", error);
 
 
-	uint32_t SLEEPTIME_CLEAR_US = 500; //min 500us entferung 15cm zur erkennung (test samr21-xpro)
-	uint32_t SLEEPTIME_SET_US = 500; //min 500us entferung 15cm zur erkennung (test samr21-xpro)
+	//uint32_t SLEEPTIME_CLEAR_US = 500; //min 500us entferung 15cm zur erkennung (test samr21-xpro)
+	//uint32_t SLEEPTIME_SET_US = 500; //min 500us entferung 15cm zur erkennung (test samr21-xpro)
 
+	/*
 	for(int i = 0; i < 1000; i++){
 		LED0_TOGGLE;
 		gpio_clear(pin);							// IR an
@@ -124,6 +105,7 @@ int main(void){
 		gpio_set(pin);						// IR aus
 		xtimer_usleep(SLEEPTIME_SET_US);
 	}
+	*/
 
     return 0;
 }
