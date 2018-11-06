@@ -45,8 +45,6 @@ void *thread_handler(void *arg) {
         msg_receive(&msg);
 
         printf("char received: %x (%c)\n", (char) msg.content.value, (char) msg.content.value);
-
-        //printf("%d\n", gpio_read(transistor_pin));
     }
     return NULL;
 }
@@ -71,64 +69,40 @@ void *thread_decoder(void *arg) {
         msg_receive(&msg);
 
         uint32_t pulse_timestamp = msg.content.value;
+        bool pin_high = msg.content.value & 0x1;
 
-        printf("pulse: %ld\n", pulse_timestamp);
+        uint32_t diff = pulse_timestamp - last_pulse;
 
-        if (!start_bit_recieved) {
+        if (!pin_high && !start_bit_recieved && diff >= START_STOP_SIGNAL) {
             start_bit_recieved = true;
-            ++received_bits;
-        } else {
-            uint32_t diff = pulse_timestamp - last_pulse - TIMER_OFFSET;
-            uint32_t approx_bit_count = round(diff / BIT_DURATION_US);
-            uint32_t max_uncertainty = approx_bit_count * BIT_DURATION_TOLLERANCE;
 
-            printf("timestamp: %ld\n", pulse_timestamp);
-            printf("last_pulse: %ld\n", last_pulse);
-            printf("TIMER_OFFSET: %ld\n", TIMER_OFFSET);
-            printf("diff: %ld\n", diff);
-            printf("diff: %ld\n", diff);
-            printf("approx_bit_count: %f, %ld\n", (double) diff/ BIT_DURATION_US, approx_bit_count);
-            printf("BITS_PER_FRAME: %d\n", BITS_PER_FRAME);
-            printf("received_bits: %d\n", received_bits);
-
-
-            //check for timeout
-            if (approx_bit_count > (uint32_t) (BITS_PER_FRAME - received_bits)) {
-                received_bits = 0;
-                start_bit_recieved = false;
-                decode_error_cnt |= 2;
-                continue;
-            }
-
-            if (diff >= approx_bit_count * BIT_DURATION_US + max_uncertainty
-                    && diff <= approx_bit_count * BIT_DURATION_US + max_uncertainty
-                    && approx_bit_count > 1) {
-                for (size_t i = received_bits; i <= received_bits + approx_bit_count - 1; ++i) {
-                    uint8_t bit_index = 8 - (i - 1);
-                    if (i == BITS_PER_FRAME) {
-                        continue;
-                    }
-
-                    recv_buffer |= 0x1 << bit_index;
-                }
-
+        } else if (!pin_high && start_bit_recieved && diff >= START_STOP_SIGNAL) {
+            --received_pulses;
+            if (nibble == 0) {
+                recv_buffer = received_pulses << 4;
+                ++nibble;
             } else {
-                received_bits = 0;
-                start_bit_recieved = false;
-                decode_error_cnt |= 1;
-                continue;
-            }
+                recv_buffer |= received_pulses;
+                nibble = 0;
 
-            received_bits += approx_bit_count;
-            if (received_bits == BITS_PER_FRAME) {
-                msg_t send_msg;
-                send_msg.content.value = received_bits;
-
-                msg_send(&send_msg, print_thread_pid);
-                received_bits = 0;
-                start_bit_recieved = false;
+                msg_t msg;
+                msg.content.value = recv_buffer;
+                if (msg_send(&msg, print_thread_pid) != 1) {
+                    decode_error_cnt |= 2;
+                }
             }
+            received_pulses = 0;
+            start_bit_recieved = 0;
+
+
+        } else if (pin_high && start_bit_recieved) {
+            ++received_pulses;
+
+        } else {
+            //TODO this is not an error case
+            decode_error_cnt |= 1;
         }
+
 
         last_pulse = pulse_timestamp;
     }
