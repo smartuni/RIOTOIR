@@ -15,7 +15,7 @@
 #define BIT_DURATION_US (2 * SIGNAL_DURATION_US)
 #define BIT_DURATION_TOLLERANCE ((int) (SIGNAL_DURATION_US * 0.05))
 #define BITS_PER_FRAME ((uint8_t) 10)
-static const uint32_t TIMER_OFFSET = 80;
+#define START_STOP_SIGNAL 1000
 
 #define DECODER_MSG_QUEUE_SIZE 128
 #define PRINTER_MSG_QUEUE_SIZE 2048
@@ -41,13 +41,11 @@ void *thread_handler(void *arg) {
 
 
     while(true) {
-        xtimer_sleep(1);
         msg_t msg;
-        //msg_receive(&msg);
+        msg_receive(&msg);
 
-        //printf("char received: %x (%c)\n", (char) msg.content.value, (char) msg.content.value);
+        printf("char received: %x (%c)\n", (char) msg.content.value, (char) msg.content.value);
 
-        printf("%ld: %d recv_error_cnt: %d decode_error_cnt: %d\n", xtimer_now_usec(), isr_counter, recv_error_cnt, decode_error_cnt);
         //printf("%d\n", gpio_read(transistor_pin));
     }
     return NULL;
@@ -57,8 +55,13 @@ void *thread_decoder(void *arg) {
     (void)arg;
 
     bool start_bit_recieved = false;
+    // timestamp of the last pulse
     uint32_t last_pulse = 0;
-    uint8_t received_bits = 0;
+    // count of received pulses
+    uint8_t received_pulses = 0;
+    // nibble we expect next (0 or 1)
+    uint8_t nibble = 0;
+    // receive buffer, flushed when a full byte is received
     uint8_t recv_buffer = 0;
 
     msg_init_queue(decoder_msg_queue, DECODER_MSG_QUEUE_SIZE);
@@ -136,7 +139,8 @@ void isr(void *arg) {
     const uint32_t timestamp = xtimer_now_usec();
 
     msg_t msg;
-    msg.content.value = timestamp;
+    // encode pin state in lsb
+    msg.content.value = (timestamp & 0xFFFFFE) | gpio_read(transistor_pin);
 
     if (msg_send(&msg, decoder_thread_pid) != 1) {
         ++recv_error_cnt;
@@ -149,12 +153,6 @@ int main(void)
 {
     puts("This is the RIOTOIR project\n");
     printf("This application runs on %s\n", RIOT_BOARD);
-
-    uint32_t test1 = 5058476;
-    uint32_t test2 = 5057360;
-    uint32_t test3 = 80;
-
-    printf("result: %d\n", test1 - test2 - test3);
 
     print_thread_pid = thread_create(
             stack, sizeof(stack),
@@ -171,7 +169,7 @@ int main(void)
             NULL,
             "decoder");
 
-    gpio_init_int(transistor_pin, GPIO_IN_PD, GPIO_RISING, isr, NULL);
+    gpio_init_int(transistor_pin, GPIO_IN_PD, GPIO_BOTH, isr, NULL);
 
     char line_buf[SHELL_DEFAULT_BUFSIZE];
     shell_run(NULL, line_buf, SHELL_DEFAULT_BUFSIZE);
