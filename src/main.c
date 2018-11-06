@@ -108,23 +108,23 @@ int main(void){
 	puts("IR-send 1ms on 1s off");
 
 	gpio_init(pin, GPIO_OUT);
-    gpio_set(pin); 							// Pin auf High
+    gpio_set(pin); 							// IR aus
 
-	sendByte(7);
+	//sendByte(7);
 	printf("error: %d\n", error);
 
-/*
+
 	uint32_t SLEEPTIME_CLEAR_US = 500; //min 500us entferung 15cm zur erkennung (test samr21-xpro)
 	uint32_t SLEEPTIME_SET_US = 500; //min 500us entferung 15cm zur erkennung (test samr21-xpro)
 
 	for(int i = 0; i < 1000; i++){
 		LED0_TOGGLE;
-		gpio_clear(pin);					// IR an
+		gpio_clear(pin);							// IR an
 		xtimer_usleep(SLEEPTIME_CLEAR_US);
 		gpio_set(pin);						// IR aus
 		xtimer_usleep(SLEEPTIME_SET_US);
 	}
-*/
+
     return 0;
 }
 
