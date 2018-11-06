@@ -94,6 +94,14 @@ int main(void){
 	printf("error: %d\n", error);
 
 
+	while(true){
+		uint8_t zahl;
+		printf("(%s)\n", "Geben sie eine Zahl ein (0 - 255):");
+		scanf("%d", &zahl);
+		sendByte(zahl);
+	}
+
+
 	//uint32_t SLEEPTIME_CLEAR_US = 500; //min 500us entferung 15cm zur erkennung (test samr21-xpro)
 	//uint32_t SLEEPTIME_SET_US = 500; //min 500us entferung 15cm zur erkennung (test samr21-xpro)
 
