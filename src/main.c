@@ -56,13 +56,11 @@ struct message messageCreate(uint8_t transmitter, uint8_t reciver, uint8_t * pay
 int sendBit(uint8_t bit){
 	int failure = 0;
 	if(bit == 1){
-		puts("bit 1\n");
 		// Interrupt, wenn andere senden!
 		gpio_set(pin);								// IR off
 		xtimer_usleep(BIT_TIME_US);
 		// prüfen ob andere gesendet haben
 	} else if( (bit & 1)== 0) {
-		puts("bit 0\n");
 		// Interrupt, wenn andere senden!
 		gpio_set(pin);								// IR off
 		xtimer_usleep(PULSE_PAUSE_TIME_US);
@@ -100,7 +98,7 @@ int sendByte(uint8_t byte){
 	}
 
 	// send StopBit
-	sendBit(1);
+	sendBit(0);
 	return EXIT_SUCCESS;
 }
 
@@ -118,7 +116,6 @@ int main(void){
 /*
 	uint32_t SLEEPTIME_CLEAR_US = 500; //min 500us entferung 15cm zur erkennung (test samr21-xpro)
 	uint32_t SLEEPTIME_SET_US = 500; //min 500us entferung 15cm zur erkennung (test samr21-xpro)
-
 
 	for(int i = 0; i < 1000; i++){
 		LED0_TOGGLE;
