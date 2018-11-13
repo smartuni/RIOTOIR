@@ -1,7 +1,10 @@
 
 #include "sendIR.h"
+#include "crc8.h"
+#include "xtimer.h"
+#include "shell.h"
+#include "thread.h"
 
-//uint8_t error = 0;
 
 static void sendPulse(uint32_t onTime_us){
 	gpio_set(pin);								// IR off
@@ -54,7 +57,8 @@ void messageSend(uint8_t transmitter, uint8_t reciver, uint8_t * payload, uint8_
 	msg->length = HEADER_LEN + loadLen;
 	msg->reciver = reciver;
 	msg->transmitter = transmitter;
-	msg->checksum = 1; //getChecksum();    //TODO
+	// getCRC8(const uint8_t *data, size_t data_len)
+	msg->checksum = getCRC8( (uint8_t *) msg, (size_t)(HEADER_LEN - 1));
 
 	memcpy(&(msg->payload), payload, loadLen);
 

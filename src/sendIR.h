@@ -2,10 +2,7 @@
 #define SENDIR_H_
 
 
-#include "shell.h"
-#include "thread.h"
 #include "periph/gpio.h"
-#include "xtimer.h"
 
 #include <stdio.h>
 #include <string.h>
