@@ -17,12 +17,15 @@ gpio_t transistor_pin = GPIO_PIN(PA, 13);
 void *thread_handler(void *arg)
 {
     (void)arg;
-
+	unsigned int kWh = 0;
     while(true) {
         xtimer_sleep(10);
+        unsigned int counter = isr_counter;
 
-        printf("%ld: %d kW/h\n", xtimer_now_usec(), isr_counter/10000);
-        printf("%d\n", gpio_read(transistor_pin));
+		if( counter > 0 && counter % 10000 == 0) {
+			kWh++;
+		}
+        printf("%ld: %d : %d kW/h\n", xtimer_now_usec(), counter, kWh);
         LED0_TOGGLE;
     }
     return NULL;
