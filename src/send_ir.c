@@ -1,3 +1,6 @@
+#include <alloca.h>
+#include <stdlib.h>
+
 #include "send_ir.h"
 #include "crc8.h"
 #include "xtimer.h"
@@ -5,27 +8,10 @@
 #include "thread.h"
 
 
-uint32_t PAUSE_TIME_US = 500;           //
-uint32_t PULSE_WIDTH_TIME_US = 500;     //IR-on time (when sending '0'-Bit)
-uint32_t START_END_PULSE_US = 1000;     //Transmittime for start- and endpulse
-uint32_t PULSE_PAUSE_TIME_US = 250;     //Pause, before and behind PULSE_WIDTH_TIME
+#include "ir_common.h"
 
-gpio_t pin = GPIO_PIN(PA, 6);           //GPIO Pin declaration
 
-#define HEADER_LEN (5 * sizeof(uint8_t))
-static const uint8_t MAX_PLD_LENGTH = 0xff - ( HEADER_LEN );
-static const uint8_t MAX_MSG_LENGTH = 0xff;
-static const uint8_t VERSION = 0;
-
-struct message{
-    uint8_t version;
-    uint8_t reciver;
-    uint8_t transmitter;
-    uint8_t length;
-    uint8_t checksum;
-    uint8_t payload[];
-}__attribute__ ((packed));
-
+static gpio_t pin;
 
 static void sendPulse(uint32_t onTime_us){
     gpio_set(pin);                              // IR off
@@ -55,9 +41,9 @@ static void sendByte(uint8_t byte){
     sendNibble(byte);
 }
 
-static void sendMsg(struct message *msg){
+static void sendMsg(struct ir_package *msg){
 
-    uint8_t len = msg->length;
+    uint8_t len = msg->header.length;
     uint8_t *msgPtr = (uint8_t *)msg;
 
     for(int i = 0; i < len; i++){
@@ -65,32 +51,33 @@ static void sendMsg(struct message *msg){
     }
 }
 
-void messageSend(uint8_t transmitter, uint8_t reciver, uint8_t * payload, uint8_t loadLen){
-    if(loadLen > MAX_PLD_LENGTH){
+int messageSend(uint8_t transmitter, uint8_t reciver, uint8_t * payload, uint8_t loadLen){
+    if(loadLen > MAX_PAYLOAD_LENGTH){
         perror("Message zu lang");
-        //return EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
 
-    uint8_t payloadAlloc[MAX_MSG_LENGTH];
 
-    struct message *msg = (struct message *) payloadAlloc;
-    msg->version = VERSION;
-    msg->length = HEADER_LEN + loadLen;
-    msg->reciver = reciver;
-    msg->transmitter = transmitter;
+    struct ir_package *msg = alloca(sizeof(struct ir_header) + loadLen);
+    msg->header.version = IR_PROTOCOL_VERSION;
+    msg->header.length = sizeof(struct ir_header) + loadLen;
+    msg->header.receiver = reciver;
+    msg->header.sender = transmitter;
     // getCRC8(const uint8_t *data, size_t data_len)
-    msg->checksum = getCRC8( (uint8_t *) msg, (size_t)(HEADER_LEN - 1));
+    msg->header.checksum = getCRC8((uint8_t *) msg, sizeof(struct ir_header) - 1);
 
-    memcpy(&(msg->payload), payload, loadLen);
+    memcpy(&(msg->msg), payload, loadLen);
 
     sendMsg(msg);
+
+    return EXIT_SUCCESS;
 }
 
-void setup_ir_send(void){
-
-
-    gpio_init(pin, GPIO_OUT);
+void setup_ir_send(gpio_t send_pin){
+    gpio_init(send_pin, GPIO_OUT);
     // IR off
-    gpio_set(pin);
+    gpio_set(send_pin);
+
+    pin = send_pin;
 }
 

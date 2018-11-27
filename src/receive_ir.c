@@ -9,13 +9,7 @@
 #include "crc8.h"
 
 #include "receive_ir.h"
-
-#define SIGNAL_DURATION_US 575
-#define BIT_DURATION_US (2 * SIGNAL_DURATION_US)
-#define BIT_DURATION_TOLLERANCE ((int) (SIGNAL_DURATION_US * 0.05))
-#define BITS_PER_FRAME ((uint8_t) 10)
-#define START_STOP_SIGNAL 1000
-#define BYTE_RECV_TIMEOUT_MS 100
+#include "ir_common.h"
 
 #define DECODER_MSG_QUEUE_SIZE 128
 #define PRINTER_MSG_QUEUE_SIZE 2048
@@ -32,22 +26,9 @@ static unsigned int decode_error_cnt = 0;
 
 static gpio_t transistor_pin;
 
-kernel_pid_t decoder_thread_pid;
-kernel_pid_t print_thread_pid;
+static kernel_pid_t decoder_thread_pid;
+static kernel_pid_t print_thread_pid;
 
-struct ir_header {
-    uint8_t version;
-    uint8_t receiver;
-    uint8_t sender;
-    uint8_t length;
-    uint8_t checksum;
-};
-
-
-struct ir_package {
-    struct ir_header header;
-    uint8_t msg[];
-};
 
 uint8_t recv_byte(void) {
     msg_t msg;
@@ -66,10 +47,6 @@ int recv_bytes(uint8_t *buff, uint8_t n) {
     for (size_t i = 0; i < n; ++i) {
         //uint32_t start_timestamp = xtimer_now_usec();
         buff[i] = recv_byte();
-
-        /*if (xtimer_now_usec() - start_timestamp >= BYTE_RECV_TIMEOUT_MS) {
-            return i;
-        }*/
     }
     return true;
 }
@@ -132,10 +109,10 @@ void *thread_decoder(void *arg) {
 
         uint32_t diff = pulse_timestamp - last_pulse;
 
-        if (!pin_high && !start_bit_recieved && diff >= START_STOP_SIGNAL) {
+        if (!pin_high && !start_bit_recieved && diff >= START_END_PULSE_US) {
             start_bit_recieved = true;
 
-        } else if (!pin_high && start_bit_recieved && diff >= START_STOP_SIGNAL) {
+        } else if (!pin_high && start_bit_recieved && diff >= START_END_PULSE_US) {
             --received_pulses;
             if (nibble == 0) {
                 recv_buffer = received_pulses << 4;
