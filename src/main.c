@@ -16,12 +16,14 @@ gpio_t transistor_pin = GPIO_PIN(PA, 13);
 
 
 int send_msg_handler(int argc, char **argv) {
-    if (argc != 1) {
+    if (argc != 2) {
         puts("Illegal argument count");
         return 1;
     }
 
-    messageSend(0, 0, (uint8_t *) argv[0], strlen(argv[0]));
+    messageSend(0, 0, (uint8_t *) argv[1], strlen(argv[1]));
+
+    return 0;
 }
 
 static const shell_command_t commands[] = {
