@@ -26,6 +26,13 @@ USEMODULE += ps
 USEMODULE += xtimer
 USEMODULE += periph_gpio_irq
 
+USEMODULE += gnrc_netdev_default
+USEMODULE += auto_init_gnrc_netif
+USEMODULE += gnrc_ipv6_default
+USEMODULE += gnrc_udp
+USEMODULE += gnrc_sock_udp
+USEMODULE += sntp
+
 #export INCLUDES += -Iapplication_include
 
 include $(RIOTBASE)/Makefile.include
