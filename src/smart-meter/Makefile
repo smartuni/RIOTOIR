@@ -25,10 +25,13 @@ USEMODULE += shell_commands
 USEMODULE += ps
 USEMODULE += xtimer
 USEMODULE += periph_gpio_irq
+USEMODULE += tsrb
+USEMODULE += fmt
 
 USEMODULE += gnrc_netdev_default
 USEMODULE += auto_init_gnrc_netif
 USEMODULE += gnrc_ipv6_default
+USEMODULE += ipv4_addr
 USEMODULE += gnrc_udp
 USEMODULE += gnrc_sock_udp
 USEMODULE += sntp
