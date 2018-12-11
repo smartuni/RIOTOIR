@@ -45,17 +45,17 @@ void simDecIncFunc(int wh){
     int blinks = wh * SIM_PULSE_PER_WH;
     int halfBlinks = blinks/2;
     int curSleepTime = SIM_MIN_PULSE_TO_PULSE_US; 
-    while( i < halfBlinks){
+    while( i < halfBlinks+1 ){
         blink();
         xtimer_usleep(curSleepTime);
-        curSleepTime = curSleepTime * 1.2;
+        curSleepTime = curSleepTime * 1.002;
         ++i;
     }
     
     while( i < blinks){
         blink();
         xtimer_usleep(curSleepTime);
-        curSleepTime = curSleepTime / 1.2;
+        curSleepTime = curSleepTime / 1.002;
         ++i;
     }
 }
