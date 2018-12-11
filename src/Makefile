@@ -21,6 +21,7 @@ QUIET ?= 1
 # Modules to include:
 
 USEMODULE += shell
+USEMODULE += xtimer
 
 #export INCLUDES += -Iapplication_include
 
