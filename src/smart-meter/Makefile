@@ -25,7 +25,6 @@ USEMODULE += shell_commands
 USEMODULE += ps
 USEMODULE += xtimer
 USEMODULE += periph_gpio_irq
-USEMODULE += tsrb
 USEMODULE += fmt
 
 USEMODULE += gnrc_netdev_default
