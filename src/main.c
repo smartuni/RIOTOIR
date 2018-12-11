@@ -15,7 +15,8 @@ int main(void)
     init(pin);
     
     puts("begin.....\n");
-    simConstFast(100);
+    //simConstFast(100);
+    simDecIncFunc(100);
     puts("....finish sending!\n");
     
     char line_buf[SHELL_DEFAULT_BUFSIZE];
