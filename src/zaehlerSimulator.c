@@ -49,12 +49,14 @@ void simDecIncFunc(int wh){
         blink();
         xtimer_usleep(curSleepTime);
         curSleepTime = curSleepTime * 1.2;
+        ++i;
     }
     
     while( i < blinks){
         blink();
         xtimer_usleep(curSleepTime);
         curSleepTime = curSleepTime / 1.2;
+        ++i;
     }
 }
 
