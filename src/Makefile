@@ -26,7 +26,8 @@ USEMODULE += ps
 USEMODULE += xtimer
 USEMODULE += periph_gpio_irq
 USEMODULE += printf_float
+USEMODULE += pcd8544
+
 #export INCLUDES += -Iapplication_include
 
 include $(RIOTBASE)/Makefile.include
-
