@@ -106,6 +106,17 @@ int write( int argc, char** argv ) {
     return 0;
 }
 
+int show_message( char* msg, int len) {
+    if( len < 0) {
+        return 0;
+    }
+    pcd8544_clear(&dev);
+    for (int i = 0; i < (len/14)+1; ++i) {
+        pcd8544_write_s(&dev, 0, i, &msg[i*14]);
+    }
+    return 0;
+}
+
 
 int display_init(void) {
     if (pcd8544_init(&dev, mySpi, myCs, myReset, myMode) != 0) {

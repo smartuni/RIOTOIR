@@ -24,5 +24,7 @@ int write( int argc, char** argv );
 
 int display_init(void);
 
+int show_message( char* msg, int len);
+
 
 #endif //RIOTOIR_RIOTOIR_DISPLAY_H

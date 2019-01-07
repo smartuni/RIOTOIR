@@ -66,11 +66,13 @@ int main(void){
     if ( display_init() != 0) {
         return 1;
     }
-
+    
     setup_ir_recv(receive_pin);
     setup_ir_send(send_pin);
     
     puts("All OK, running shell now");
+
+    show_message("1234567890123456789012345678901234567890", 40);
 
     char line_buf[SHELL_DEFAULT_BUFSIZE];
     shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
