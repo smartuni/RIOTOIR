@@ -24,7 +24,7 @@ extern "C" {
  * \param[in] data_len Number of bytes in the \a data buffer.
  * \return             The crc 8 bit value.
  */
-uint8_t getCRC8(const uint8_t *data, size_t data_len);
+uint8_t getCRC8( const uint8_t* data, size_t data_len );
 
 /**
  * Calculate the crc value for the new data and checks the equality with the delivered crc value.
@@ -34,7 +34,7 @@ uint8_t getCRC8(const uint8_t *data, size_t data_len);
  * \param[in] data_len   Number of bytes in the \a data buffer.
  * \return               true, when the crc value are equal.
  */
-bool checkCRC8(const uint8_t crcToCheck, const uint8_t *data, size_t data_len);
+bool checkCRC8( const uint8_t crcToCheck, const uint8_t* data, size_t data_len );
 
 
 #ifdef __cplusplus

@@ -4,6 +4,6 @@
 
 #include "periph/gpio.h"
 
-void setup_ir_recv(gpio_t ir_pin);
+void setup_ir_recv( gpio_t ir_pin );
 
 #endif

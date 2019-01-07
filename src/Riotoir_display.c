@@ -9,6 +9,9 @@
 #include "Riotoir_display.h"
 #include "pcd8544.h"
 
+#define MESSAGE_LENGHT 250
+#define MAX_DISPLAY_COLOMNS 6
+
 static pcd8544_t dev;
 static spi_t mySpi = SPI_DEV(1);
 static gpio_t myCs = GPIO_PIN(PA, 16);
@@ -106,19 +109,17 @@ int write( int argc, char** argv ) {
     return 0;
 }
 
-int show_message( char* msg, int len) {
-    if( len < 0) {
-        return 0;
-    }
+int show_message( char* msg ) {
     pcd8544_clear(&dev);
-    for (int i = 0; i < (len/14)+1; ++i) {
-        pcd8544_write_s(&dev, 0, i, &msg[i*14]);
+    int msg_len = strlen(msg, MESSAGE_LENGHT);
+    for (int i = 0; i < ( msg_len / 14 ) + 1 && i < MAX_DISPLAY_COLOMNS; ++i) {
+        pcd8544_write_s(&dev, 0, i, &msg[i * 14]);
     }
     return 0;
 }
 
 
-int display_init(void) {
+int display_init( void ) {
     if (pcd8544_init(&dev, mySpi, myCs, myReset, myMode) != 0) {
         puts("Failed to initialize PCD8544 display\n");
         return 1;

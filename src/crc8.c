@@ -11,8 +11,7 @@
 #include <stdbool.h>
 
 
-
-uint8_t getCRC8(const uint8_t *data, size_t data_len) {
+uint8_t getCRC8( const uint8_t* data, size_t data_len ) {
     uint8_t crc = 0x00;
     uint8_t i;
     bool bit;
@@ -35,8 +34,8 @@ uint8_t getCRC8(const uint8_t *data, size_t data_len) {
     return crc & 0xff;
 }
 
-bool checkCRC8(const uint8_t crcToCheck, const uint8_t *data, size_t data_len) {
-    uint8_t newCRC = getCRC8(data,data_len);
+bool checkCRC8( const uint8_t crcToCheck, const uint8_t* data, size_t data_len ) {
+    uint8_t newCRC = getCRC8(data, data_len);
 
     if (crcToCheck == newCRC) {
         return true;

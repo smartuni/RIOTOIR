@@ -22,9 +22,9 @@ int riot( int argc, char** argv );
 
 int write( int argc, char** argv );
 
-int display_init(void);
+int display_init( void );
 
-int show_message( char* msg, int len);
+int show_message( char* msg );
 
 
 #endif //RIOTOIR_RIOTOIR_DISPLAY_H

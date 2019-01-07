@@ -10,6 +10,7 @@
 
 #include "receive_ir.h"
 #include "ir_common.h"
+#include "Riotoir_display.h"
 
 #define DECODER_MSG_QUEUE_SIZE 128
 #define PRINTER_MSG_QUEUE_SIZE 2048
@@ -30,7 +31,7 @@ static kernel_pid_t decoder_thread_pid;
 static kernel_pid_t print_thread_pid;
 
 
-uint8_t recv_byte(void) {
+uint8_t recv_byte( void ) {
     msg_t msg;
     msg_receive(&msg);
 
@@ -43,7 +44,7 @@ uint8_t recv_byte(void) {
  * @param buff recieve buffer. Must be at least n bytes large.
  * @param n number of bytes to receive
  */
-int recv_bytes(uint8_t *buff, uint8_t n) {
+int recv_bytes( uint8_t* buff, uint8_t n ) {
     for (size_t i = 0; i < n; ++i) {
         //uint32_t start_timestamp = xtimer_now_usec();
         buff[i] = recv_byte();
@@ -51,16 +52,16 @@ int recv_bytes(uint8_t *buff, uint8_t n) {
     return true;
 }
 
-void *thread_handler(void *arg) {
-    (void)arg;
+void* thread_handler( void* arg ) {
+    (void) arg;
 
     msg_init_queue(printer_msg_queue, PRINTER_MSG_QUEUE_SIZE);
 
 
-    while(true) {
+    while (true) {
         uint8_t recv_buffer[MSG_BUFFER_SIZE];
         memset(recv_buffer, 0, MSG_BUFFER_SIZE);
-        struct ir_package *msg = (struct ir_package *) recv_buffer;
+        struct ir_package* msg = (struct ir_package*) recv_buffer;
         uint8_t bytes_received = 0;
 
         recv_bytes(recv_buffer, sizeof(struct ir_header) - bytes_received);
@@ -76,17 +77,18 @@ void *thread_handler(void *arg) {
 
         recv_bytes(recv_buffer + sizeof(struct ir_header), expected_bytes);
 
-        if (checkCRC8(msg->header.checksum, (uint8_t *) &(msg->header), sizeof(struct ir_header) - 1) == false) {
+        if (checkCRC8(msg->header.checksum, (uint8_t*) &( msg->header ), sizeof(struct ir_header) - 1) == false) {
             printf("Checksum invalid\n");
         } else {
             printf("msg received: %.250s\n", msg->msg);
+            show_message(msg->msg);
         }
     }
     return NULL;
 }
 
-void *thread_decoder(void *arg) {
-    (void)arg;
+void* thread_decoder( void* arg ) {
+    (void) arg;
 
     bool start_bit_recieved = false;
     // timestamp of the last pulse
@@ -100,7 +102,7 @@ void *thread_decoder(void *arg) {
 
     msg_init_queue(decoder_msg_queue, DECODER_MSG_QUEUE_SIZE);
 
-    while(true) {
+    while (true) {
         msg_t msg;
         msg_receive(&msg);
 
@@ -144,13 +146,13 @@ void *thread_decoder(void *arg) {
     }
 }
 
-void isr(void *arg) {
+void isr( void* arg ) {
     (void) arg;
     const uint32_t timestamp = xtimer_now_usec();
 
     msg_t msg;
     // encode pin state in lsb
-    msg.content.value = (timestamp & 0xFFFFFE) | gpio_read(transistor_pin);
+    msg.content.value = ( timestamp & 0xFFFFFE ) | gpio_read(transistor_pin);
 
     if (msg_send(&msg, decoder_thread_pid) != 1) {
         ++recv_error_cnt;
@@ -159,7 +161,7 @@ void isr(void *arg) {
     ++isr_counter;
 }
 
-void setup_ir_recv(gpio_t ir_pin) {
+void setup_ir_recv( gpio_t ir_pin ) {
     transistor_pin = ir_pin;
 
     print_thread_pid = thread_create(
