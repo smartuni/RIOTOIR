@@ -8,7 +8,6 @@
 #include "periph/gpio.h"
 #include "shell.h"
 #include "Riotoir_display.h"
-#include "pcd8544.h"
 
 #include "receive_ir.h"
 #include "send_ir.h"
@@ -17,13 +16,6 @@
 #define BUFFERSIZE 32
 
 #define MSG_BUFFER_SIZE 255
-
-// Display pins
-static pcd8544_t dev;
-static spi_t mySpi = SPI_DEV(1);
-static gpio_t myCs = GPIO_PIN(PA, 16);
-static gpio_t myReset = GPIO_PIN(PA, 14);
-static gpio_t myMode = GPIO_PIN(PA, 17);
 
 //IR pins
 gpio_t receive_pin = GPIO_PIN(PA, 13);
@@ -66,10 +58,10 @@ int main(void){
     if ( display_init() != 0) {
         return 1;
     }
-    
+
     setup_ir_recv(receive_pin);
     setup_ir_send(send_pin);
-    
+
     puts("All OK, running shell now");
 
     show_message("1234567890123456789012345678901234567890", 40);
