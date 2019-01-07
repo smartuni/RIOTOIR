@@ -111,7 +111,14 @@ int write( int argc, char** argv ) {
 
 int show_message( char* msg ) {
     pcd8544_clear(&dev);
-    int msg_len = strlen(msg, MESSAGE_LENGHT);
+    int msg_len = 0; //strnlen(msg, MESSAGE_LENGHT);
+    while ( msg_len < MESSAGE_LENGHT) {
+        if (msg[msg_len] != '\0') {
+            msg_len++;
+        } else {
+            break;
+        }
+    }
     for (int i = 0; i < ( msg_len / 14 ) + 1 && i < MAX_DISPLAY_COLOMNS; ++i) {
         pcd8544_write_s(&dev, 0, i, &msg[i * 14]);
     }

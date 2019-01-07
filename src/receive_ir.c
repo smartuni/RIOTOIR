@@ -81,7 +81,7 @@ void* thread_handler( void* arg ) {
             printf("Checksum invalid\n");
         } else {
             printf("msg received: %.250s\n", msg->msg);
-            show_message(msg->msg);
+            show_message((char *)msg->msg);
         }
     }
     return NULL;
