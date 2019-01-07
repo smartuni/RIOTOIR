@@ -112,5 +112,8 @@ int display_init(void) {
         puts("Failed to initialize PCD8544 display\n");
         return 1;
     }
+    pcd8544_set_contrast(&dev, 70);
+    pcd8544_riot(&dev);
+    pcd8544_write_s(&dev, 11, 5, "OIR");
     return 0;
 }
