@@ -21,8 +21,8 @@ QUIET ?= 1
 # Modules to include:
 
 USEMODULE += shell
+USEMODULE += pcd8544
 
 #export INCLUDES += -Iapplication_include
 
 include $(RIOTBASE)/Makefile.include
-
