@@ -1,0 +1,77 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[ngerman]{babel}
+\usetheme{JuanLesPins}  %% Themenwahl
+
+\usepackage[orientation=portrait,size=a0,scale=1.4,debug]{beamerposter}
+
+\usepackage{pgfpages}
+\setbeamertemplate{note page}[plain]
+%\setbeameroption{show notes on second screen=right}
+
+\title{RIOTOIR}
+\author{Martin Witte}
+\date{\today}
+
+\begin{document}
+%\beamertemplatenavigationsymbolsempty
+\unitlength 5mm
+
+
+\begin{frame} %%Eine Folie
+  \begin{block}{\textbf{Überblick}}
+  	  \centering
+	  \includegraphics[width=\linewidth]{riotoir-logo.png}
+	  \begin{columns}[t]
+	  	\begin{column}{.50\linewidth}
+		  \begin{block}{IR-Übertragung im RIOT-Netzwerkstack}
+		    \begin{align*}
+		    &RIOT &&\Rightarrow~~~~Betriebssystem~f\ddot{u}r~IoT-Ger\ddot{a}te\\
+		    &O &&\Rightarrow~~~~\textbf{O}n\\
+		    &I &&\Rightarrow~~~~\textbf{I}nfra\\
+		    &R &&\Rightarrow~~~~\textbf{R}ed\\
+		    \end{align*}
+		  \end{block}
+	  \end{column}
+  \end{columns}
+	\end{block}
+\vfill
+  \begin{block}{\textbf{Details}}
+    \begin{columns}[t]
+      \begin{column}{.7\linewidth}
+		\begin{block}{Übertragung}
+			- Baudrate (des ersten Prototyp) $\rightarrow$ $1333 Bd - 1838 Bd$\\
+			- Eigene Modulation (auf geringe Timergenauigkeit ausgelegt)\\
+			- Uni- oder Bidirektional möglich\\
+			- Halbduplex möglich\\
+		\end{block}
+	  \end{column}
+    \end{columns}
+\vspace{10pt}
+	\begin{columns}[t]
+	  \begin{column}{.45\linewidth}
+		\begin{block}{Sender}
+			Software:\\
+			- Errechnet aus den zu sendenden Daten eine Sequenz von Spannungsänderungen\{0V,3.3V\} an einem Pin des Mikrokontrollers, welche die Senderperipherie ansteuert.\\
+			Hardware:\\
+			- Die Spannung vom Pin des Mikrokontrollers schaltet den Transistor durch, wodurch die IR-Diode mit Energie zum "leuchten" versorgt wird.\\
+			- Aufbau mit nur 2 Bauteilen(IR-Diode, Transistor)\\
+			~\\
+		\end{block}
+	  \end{column}
+      \begin{column}{0.45\linewidth}
+		\begin{block}{Empfänger}
+			Software:\\
+			- Wenn die Empfänger-Peripherie die Spannung am Pin ändert, wird ein Interrupt ausgelöst. Dieser stößt dann die weitere Verarbeitung des Signals an.\\
+			- Realisiert mit Interrupts und Message-Passing\\
+			Hardware:\\
+			- Die eintreffende IR-Strahlung schaltet den IR-Transistor durch, dieser wiederum schaltet einen PNP-Transistor durch. Dadurch wird eine Spannung\{0V, 3.3V\} an einen Pin des Mikroprozessors gelegt\\
+			- Aufbau mit nur 4 Bauteilen(IR-Transistor, Transistor, Widerstände)\\
+		\end{block}
+	  \end{column}
+	\end{columns}
+	\vspace{10pt}
+  \end{block}
+\end{frame}
+
+\end{document}
